@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SurfPotDB — Protein Surface Electrostatics Database</title>
+
+  <!-- DataTables (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/datatables.net-dt@2.0.8/css/dataTables.dataTables.min.css" />
+  <!-- Stile locale -->
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <nav class="site-nav">
+        <a href="./index.html" class="active">Database</a>
+        <a href="./about.html">About</a>
+        <a href="./methods.html">Methods</a>
+      </nav>
+      <h1><span class="brand">SurfPot<span class="db">DB</span></span></h1>
+      <p class="subtitle">
+        Protein <strong>surface electrostatics</strong> from continuum
+        Poisson–Boltzmann (NextGenPB), queryable by PDB code. Energies in
+        <strong>kT</strong>, surface potential in <strong>kT/e</strong>.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ 1. RICERCA PER CODICE PDB (con risoluzione cluster) ====== -->
+    <section class="panel" id="resolver-panel">
+      <h2>Look up a PDB code</h2>
+      <form id="resolve-form" autocomplete="off">
+        <input type="text" id="pdb-input" name="pdb"
+               placeholder="e.g. 7kr0" maxlength="8" spellcheck="false" />
+        <button type="submit">Search</button>
+      </form>
+      <div id="resolve-result" class="resolve-result" hidden></div>
+    </section>
+
+    <!-- ============ 2. FILTRI PER VALORE ==================================== -->
+    <section class="panel" id="filter-panel">
+      <details class="filter-details">
+        <summary class="filter-summary">
+          <span class="filter-summary-title">Filter by value</span>
+          <span id="filter-count" class="filter-count" hidden></span>
+        </summary>
+        <p class="hint">Set a min and/or max for any quantity. Filters combine with
+          each other and with the table search below.</p>
+        <div id="numeric-filters" class="filter-grid"></div>
+        <button type="button" id="filter-reset" class="btn-reset">Reset filters</button>
+      </details>
+    </section>
+
+    <!-- ============ 3. TABELLA COMPLETA ===================================== -->
+    <section class="panel">
+      <h2>All computed structures (<span id="count">…</span>)</h2>
+      <p class="hint">Search, sort and filter the full set. Click a row's PDB code
+        to load it in the lookup box above.</p>
+      <table id="results-table" class="display" style="width:100%">
+        <thead>
+          <tr>
+            <th>PDB</th>
+            <th>UniProt</th>
+            <th>Protein</th>
+            <th>E<sub>pol</sub></th>
+            <th>E<sub>ion</sub></th>
+            <th>E<sub>coul</sub></th>
+            <th>E<sub>tot</sub></th>
+            <th>&phi;<sub>min</sub></th>
+            <th>&phi;<sub>max</sub></th>
+            <th>Residues</th>
+            <th>Downloads</th>
+          </tr>
+        </thead>
+      </table>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><span class="brand">SurfPot<span class="db">DB</span></span> · data generated <span id="generated">…</span> · computed with NextGenPB</p>
+  </footer>
+
+  <!-- jQuery + DataTables (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@2.0.8/js/dataTables.min.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

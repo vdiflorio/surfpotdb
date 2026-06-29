@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Methods — SurfPotDB</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <nav class="site-nav">
+        <a href="./index.html">Database</a>
+        <a href="./about.html">About</a>
+        <a href="./methods.html" class="active">Methods</a>
+      </nav>
+      <h1>Methods <span class="brand">&amp; data</span></h1>
+      <p class="subtitle">How the structures were selected, protonated and
+        computed, and how to use the published files.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel prose">
+
+      <p class="lead">
+        This page documents the full pipeline behind every value in
+        <span class="brand">SurfPot<span class="db">DB</span></span>, and how to
+        reuse the downloadable files. For the overview and the dataset's scope, see
+        the <a href="./about.html">About</a> page.
+      </p>
+
+      <h2>What each structure ships</h2>
+      <p>
+        For each computed structure we report four electrostatic energy
+        contributions (in <code>kT</code>), the range of the molecular-surface
+        potential (in <code>kT/e</code>), and two downloadable files: the surface
+        potential mesh (<code>.vtp</code>, for ParaView) and the protonated
+        structure with charges and radii (<code>.pqr</code>, for PyMOL/VMD).
+      </p>
+
+      <h2>How structures were selected</h2>
+      <p>
+        Solving the Poisson–Boltzmann equation on the entire PDB would repeat work
+        on near-identical entries. We reduced the PDB to a non-redundant set of
+        representatives through the following funnel:
+      </p>
+      <table class="funnel">
+        <tr>
+          <td><strong>1. Download</strong></td>
+          <td>Entire RCSB PDB, keeping only structures with fewer than
+              <strong>1000 protein residues</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>2. Filter</strong></td>
+          <td>Removed entries released before <strong>year 2010</strong> and
+              <strong>membrane proteins</strong> (via the RCSB API).</td>
+        </tr>
+        <tr>
+          <td><strong>3. Cluster</strong></td>
+          <td>Grouped by sequence identity using RCSB's pre-computed clusters at
+              <strong>90% identity</strong>:
+              <strong>126,139</strong> proteins → <strong>32,861</strong> clusters.</td>
+        </tr>
+        <tr>
+          <td><strong>4. Representative</strong></td>
+          <td>One representative per cluster, chosen by <strong>best resolution</strong>
+              (ties broken by larger residue count).</td>
+        </tr>
+        <tr>
+          <td><strong>5. This release</strong></td>
+          <td>Of the cluster representatives, computed the
+              <strong>ligand- and ion-free</strong> ones (protein-only):
+              <strong>8,570</strong> structures, standing for
+              <strong>19,014</strong> PDB entries. Where a representative also
+              carried nucleic acid or other non-protein chains, only the protein
+              was kept for the calculation.</td>
+        </tr>
+      </table>
+      <p>
+        Calculations run on the <strong>representatives</strong> only, and a query
+        for any member of a cluster is resolved to its representative (see
+        <em>Cluster resolution</em> below), so a single computed structure answers
+        for its whole cluster. This first release is deliberately restricted to
+        <strong>protein-only</strong> inputs: every computed structure is free of
+        bound ligands and ions, so the electrostatics rest on a single,
+        well-defined assignment of charges and radii, with no ambiguous
+        parametrization of cofactors. Representatives that carry ligands or ions
+        are deferred to forthcoming releases, once a robust parametrization of
+        their charges and radii is in place.
+      </p>
+
+      <h2>How the PDBs were protonated</h2>
+      <p>
+        Poisson–Boltzmann electrostatics depends critically on the
+        <strong>protonation state</strong> of titratable residues, which crystal
+        structures do not provide. We assigned protonation with
+        <a href="https://github.com/GunnerLab/MCCE4-Alpha" target="_blank" rel="noopener">MCCE4</a>
+        (Multi-Conformation Continuum Electrostatics):
+      </p>
+      <ul>
+        <li>MCCE builds multiple side-chain conformers and protonation
+            micro-states for each titratable residue.</li>
+        <li>It evaluates their electrostatic interactions with a continuum
+            (Poisson–Boltzmann) model, internally using NextGenPB for the PBE
+            energy term, and samples the state space by <strong>Monte Carlo</strong>
+            to compute <strong>pK<sub>a</sub></strong> values.</li>
+        <li>At <strong>pH 7.0</strong> we extracted the
+            <strong>maximum-occupancy conformation</strong> (the most probable
+            protonation/conformation state) and converted it to a
+            <strong>PQR</strong> file carrying MCCE atomic charges and radii.</li>
+      </ul>
+      <p>
+        This protonated PQR is the input to the final electrostatics calculation
+        and is the <code>.pqr</code> file offered for download. Because it carries
+        the per-atom charges and radii assigned by MCCE, the downloaded
+        <code>.pqr</code> lets you <strong>recover the exact protonation state</strong>
+        (which titratable groups are protonated/deprotonated, and in which
+        conformer) that MCCE determined at pH&nbsp;7.0, the ground-truth
+        protonation behind every number on this site.
+      </p>
+
+      <h2>Electrostatics calculation (NextGenPB)</h2>
+      <p>
+        Each protonated structure is solved with NextGenPB as a standalone
+        linearized Poisson–Boltzmann calculation, using a single, documented
+        parameter set: solute dielectric <strong>2</strong>, solvent dielectric
+        <strong>80</strong>, ionic strength <strong>0.145 M</strong>, temperature
+        <strong>298.15 K</strong>. The run produces the molecular-surface potential
+        map (<code>.vtp</code>) and the energy decomposition reported here
+        (polarization, ionic, Coulombic, total).
+      </p>
+      <p>
+        The four energy contributions are given in <code>kT</code>. To convert to
+        <strong>kcal/mol</strong>, multiply by <strong>0.593</strong>
+        (1 <code>kT</code> at 298.15 K = 0.593 kcal/mol).
+      </p>
+
+      <h2>Potential anywhere inside the protein</h2>
+      <p>
+        The published <code>.vtp</code> meshes are <strong>enriched</strong>: for
+        each surface node they store not only the potential <code>phi</code> and
+        the normal, but also the <strong>polarization charge</strong>
+        <code>q_pol</code> (the flux of the dielectric displacement through the
+        surface). That extra field is what makes the surface solution
+        <em>reusable</em>: combined with the atomic charges from the
+        <code>.pqr</code>, it lets you reconstruct the electrostatic potential
+        (and field) at <strong>any point inside the structure</strong>, not just
+        on the surface.
+      </p>
+      <p>
+        Concretely, a single published <code>.vtp</code> reconstructs the potential
+        anywhere from the files alone, including <strong>at the atom centers</strong>,
+        where each atom's own (infinite) Coulomb self-term is automatically excluded
+        so the values stay physically meaningful right at the nuclei.
+      </p>
+      <p>
+        Values are in reduced units <code>kT/e</code> (≈ 25.7 mV at 298.15 K),
+        matching the <code>phi</code> array in the <code>.vtp</code>.
+      </p>
+      <p>
+        A small standalone tool, <a href="./tools/ngpb_potential.py">ngpb_potential.py</a>
+        (<a href="./tools/README.md">documentation</a>), does exactly this: given a
+        structure's <code>.vtp</code> and <code>.pqr</code> alone, it reconstructs the
+        electrostatic potential and field anywhere inside the protein, on a grid,
+        along a path, at arbitrary points, or at the atom centers (with the Coulomb
+        self-term excluded). No solver re-run needed.
+      </p>
+      <pre><code># potential at atom centers (self-energy excluded), from the published files
+python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
+
+      <h2>How to use the data</h2>
+      <p>
+        Every structure ships two files, plus a dataset-wide index. Search a PDB
+        code on the <a href="./index.html">Database</a> page to get its download
+        links.
+      </p>
+      <ul>
+        <li><strong><code>.vtp</code>, surface potential mesh.</strong> Open in
+            <a href="https://www.paraview.org/" target="_blank" rel="noopener">ParaView</a>
+            and colour by the <code>phi</code> array to see the electrostatic
+            potential on the molecular surface. It also carries the surface normal
+            and the polarization charge <code>q_pol</code> at each node.</li>
+        <li><strong><code>.pqr</code>, protonated structure.</strong> Open in
+            <a href="https://pymol.org/" target="_blank" rel="noopener">PyMOL</a> or
+            <a href="https://www.ks.uiuc.edu/Research/vmd/" target="_blank" rel="noopener">VMD</a>.
+            It carries the per-atom MCCE charges and radii, so it both records the
+            exact pH-7.0 protonation state and serves as input to other PBE solvers.</li>
+        <li><strong><code>index.csv</code> + SQLite snapshot.</strong> The citable
+            Zenodo landing record bundles a canonical CSV index (PDB code, energies,
+            surface-potential range, download URLs) and a static SQLite snapshot for
+            querying the whole dataset offline, useful for bulk download or
+            dataset-wide analysis.</li>
+      </ul>
+
+      <h2>Cluster resolution</h2>
+      <p>
+        When you search a PDB code on the <a href="./index.html">Database</a> page:
+      </p>
+      <ul>
+        <li>if it is a <strong>computed representative</strong>, its results are shown;</li>
+        <li>if it is a <strong>member</strong> of a cluster whose representative was
+            computed, you are redirected to that representative with a note;</li>
+        <li>otherwise it is reported as not (yet) available.</li>
+      </ul>
+
+      <h2>Dataset diversity in detail</h2>
+      <p>
+        The 8,570 computed representatives are non-redundant by construction (one
+        per 90%-identity sequence cluster). Annotations pulled from the RCSB PDB API
+        show the set spans a broad swath of the known protein universe.
+      </p>
+
+      <h3>Functional classification (Enzyme Commission)</h3>
+      <p>
+        <strong>1,405</strong> representatives (16.4%) carry an enzyme (EC)
+        annotation, covering all seven top-level EC classes:
+      </p>
+      <table class="funnel">
+        <tr><td>Oxidoreductases (EC 1)</td><td>148</td><td>1.7%</td></tr>
+        <tr><td>Transferases (EC 2)</td><td>512</td><td>6.0%</td></tr>
+        <tr><td>Hydrolases (EC 3)</td><td>533</td><td>6.2%</td></tr>
+        <tr><td>Lyases (EC 4)</td><td>83</td><td>1.0%</td></tr>
+        <tr><td>Isomerases (EC 5)</td><td>101</td><td>1.2%</td></tr>
+        <tr><td>Ligases (EC 6)</td><td>77</td><td>0.9%</td></tr>
+        <tr><td>Translocases (EC 7)</td><td>5</td><td>0.1%</td></tr>
+      </table>
+      <p class="hint">
+        Per-class counts sum to slightly more than 1,405 because a few
+        multi-function enzymes carry EC numbers in more than one top-level class and
+        are counted in each.
+      </p>
+
+      <h3>Structural classification (CATH)</h3>
+      <p>
+        The annotated structures cover <strong>1,408</strong> distinct CATH
+        superfamilies across every major fold class:
+      </p>
+      <table class="funnel">
+        <tr><td>Mainly Alpha</td><td>1,016</td><td>11.9%</td></tr>
+        <tr><td>Mainly Beta</td><td>1,302</td><td>15.2%</td></tr>
+        <tr><td>Alpha/Beta</td><td>1,726</td><td>20.1%</td></tr>
+        <tr><td>Few secondary structures</td><td>44</td><td>0.5%</td></tr>
+        <tr><td>Special</td><td>75</td><td>0.9%</td></tr>
+      </table>
+
+      <h3>Taxonomic diversity</h3>
+      <p>
+        Source organisms span all four superkingdoms of cellular and viral life:
+      </p>
+      <table class="funnel">
+        <tr><td>Eukaryota</td><td>4,496</td><td>52.5%</td></tr>
+        <tr><td>Bacteria</td><td>2,830</td><td>33.0%</td></tr>
+        <tr><td>Viruses</td><td>825</td><td>9.6%</td></tr>
+        <tr><td>Archaea</td><td>197</td><td>2.3%</td></tr>
+        <tr><td>Unassigned / synthetic</td><td>571</td><td>6.7%</td></tr>
+      </table>
+
+      <div class="figure-grid">
+        <figure>
+          <img src="./figures/fig_ec_class.png" alt="Functional diversity by EC class" loading="lazy" />
+          <figcaption>Functional diversity by EC class.</figcaption>
+        </figure>
+        <figure>
+          <img src="./figures/fig_taxonomy.png" alt="Taxonomic diversity by superkingdom" loading="lazy" />
+          <figcaption>Taxonomic diversity by superkingdom.</figcaption>
+        </figure>
+      </div>
+      <p class="hint">
+        CATH and Pfam do not yet annotate many recent entries (notably cryo-EM
+        structures), so dataset breadth is best read from the
+        <strong>counts of distinct families</strong> (2,639 Pfam, 1,408 CATH)
+        rather than from per-class percentages. Non-redundancy is guaranteed by the
+        sequence clustering (one representative per cluster).
+      </p>
+
+      <p style="margin-top:1.6rem">
+        <a href="./about.html">&larr; Back to About</a>
+        &nbsp;·&nbsp;
+        <a href="./index.html">Go to the database &rarr;</a>
+      </p>
+
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><span class="brand">SurfPot<span class="db">DB</span></span> — protein surface electrostatics database · computed with NextGenPB · protonated with MCCE4</p>
+  </footer>
+</body>
+</html>

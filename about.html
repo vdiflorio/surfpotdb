@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About — SurfPotDB</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <nav class="site-nav">
+        <a href="./index.html">Database</a>
+        <a href="./about.html" class="active">About</a>
+        <a href="./methods.html">Methods</a>
+      </nav>
+      <h1>About <span class="brand">SurfPot<span class="db">DB</span></span></h1>
+      <p class="subtitle">A reproducible, citable reference for protein
+        surface electrostatics, free to browse, query and download.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel prose">
+
+      <h2>What this is</h2>
+      <p class="lead">
+        <span class="brand">SurfPot<span class="db">DB</span></span> is a public,
+        citable database of <strong>protein surface electrostatic potentials</strong>,
+        computed by solving the linearized Poisson–Boltzmann equation with
+        <a href="https://github.com/vdiflorio/NextGenPB" target="_blank" rel="noopener">NextGenPB</a>
+        on structures from the
+        <a href="https://www.rcsb.org/" target="_blank" rel="noopener">RCSB Protein Data Bank</a>.
+        It is freely accessible (no login, no registration), fully functional, and
+        queryable by PDB code.
+        <!-- , with automatic resolution of 90%-identity sequence
+        clusters, filtering, and bulk download. -->
+      </p>
+
+      <h2>Why it matters</h2>
+      <p>
+        Continuum (Poisson–Boltzmann) surface potentials are routinely recomputed
+        from scratch by individual groups, with non-trivial and rarely documented
+        choices of protonation, dielectric and ionic conditions, which makes
+        results hard to reproduce and compare.
+        <span class="brand">SurfPot<span class="db">DB</span></span> removes that
+        friction: every potential comes from one documented protocol, with the
+        per-atom protonation made explicit and the full internal field
+        reconstructable from the published files alone. In doing so it adds a layer
+        of <strong>electrostatic quantities that complement the structural
+        information</strong> in the Protein Data Bank, computed once, consistently,
+        and ready to reuse.
+      </p>
+      <p>What <span class="brand">SurfPot<span class="db">DB</span></span> gives you:</p>
+      <ul>
+        <li><strong>One documented parameter set for every structure.</strong>
+            Solute dielectric 2, solvent 80, ionic strength 0.145&nbsp;M,
+            298.15&nbsp;K, so values are directly comparable across the whole
+            database.</li>
+        <li><strong>The exact protonation behind every value.</strong> Protonation
+            is assigned at pH&nbsp;7.0 with
+            <a href="https://github.com/GunnerLab/MCCE4-Alpha" target="_blank" rel="noopener">MCCE4</a>
+            and published as a <code>.pqr</code> file carrying per-atom charges and
+            radii, with no hidden assumptions.</li>
+        <li><strong>The field anywhere inside the protein, from the files alone.</strong>
+            The surface meshes (<code>.vtp</code>) are enriched with polarization
+            charges, so you can reconstruct the electrostatic potential and field at
+            any interior point with no solver re-run. A small standalone tool is
+            provided.</li>
+        <li><strong>Persistent, citable releases.</strong> All data are deposited on
+            Zenodo under persistent DOIs, including a canonical CSV index and a
+            SQLite snapshot for offline, dataset-wide analysis.</li>
+      </ul>
+
+      <h2>What it covers</h2>
+      <p>
+        <span class="brand">SurfPot<span class="db">DB</span></span> covers the
+        <strong>ligand-free fraction of the non-redundant PDB</strong>. Starting
+        from 126,139 structures grouped into 32,861 non-redundant clusters (90%
+        sequence identity), the current release computes electrostatics on the
+        <strong>8,570 protein-only representatives</strong>, which answer for roughly
+        <strong>19,000 PDB codes</strong>. The remaining ~24,000 clusters contain
+        bound ligands or ions and are targeted for forthcoming releases.
+      </p>
+      <div class="stat-row">
+        <div class="stat"><div class="n">126,139</div><div class="l">structures analysed</div></div>
+        <div class="stat"><div class="n">32,861</div><div class="l">non-redundant clusters</div></div>
+        <div class="stat"><div class="n">8,570</div><div class="l">representatives computed</div></div>
+        <div class="stat"><div class="n">~19,000</div><div class="l">PDB codes resolvable</div></div>
+      </div>
+
+      <h2>How broad it is</h2>
+      <p>
+        The computed representatives are non-redundant by construction and together
+        span a broad swath of the known protein universe, across families, folds,
+        functions and the tree of life:
+      </p>
+      <div class="stat-row">
+        <div class="stat"><div class="n">2,639</div><div class="l">distinct Pfam families</div></div>
+        <div class="stat"><div class="n">1,408</div><div class="l">CATH superfamilies</div></div>
+        <div class="stat"><div class="n">7 / 7</div><div class="l">EC enzyme classes</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">superkingdoms of life</div></div>
+      </div>
+      <p class="hint">
+        Full per-class breakdowns, figures and the selection, protonation and
+        calculation protocols are on the <a href="./methods.html">Methods</a> page.
+      </p>
+
+      <h2>Access &amp; reuse</h2>
+      <ul>
+        <li><strong>Open and immediate.</strong> Browse and query by PDB code with no
+            account; member codes of a covered cluster resolve automatically to the
+            computed representative.</li>
+        <li><strong>Two files per structure.</strong> The surface potential mesh
+            (<code>.vtp</code>, for ParaView) and the protonated structure
+            (<code>.pqr</code>, for PyMOL/VMD), plus a dataset-wide CSV index and
+            SQLite snapshot.</li>
+        <li><strong>Citable.</strong> Persistent Zenodo DOIs.</li>
+      </ul>
+
+      <h2>What's next</h2>
+      <p>The database is actively maintained and growing:</p>
+      <ul>
+        <li><strong>Protein–ligand and protein–ion complexes</strong>, extending the
+            electrostatics beyond protein-only entries.</li>
+        <li><strong>Neural-network–refined surface potentials</strong>, trained on
+            analytical benchmarks for higher accuracy.</li>
+        <li><strong>More representatives</strong>, toward all 32,861 clusters, with
+            regular DOI releases that add structures without breaking existing
+            download links.</li>
+      </ul>
+
+      <p style="margin-top:1.6rem">
+        <a href="./index.html">&larr; Back to the database</a>
+        &nbsp;·&nbsp;
+        <a href="./methods.html">Methods &amp; data details &rarr;</a>
+      </p>
+
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><span class="brand">SurfPot<span class="db">DB</span></span> — protein surface electrostatics database · computed with NextGenPB · protonated with MCCE4</p>
+  </footer>
+</body>
+</html>
