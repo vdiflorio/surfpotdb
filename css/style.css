@@ -170,6 +170,19 @@ main { max-width: 1200px; margin: 1.6rem auto; padding: 0 1.5rem; }
 }
 .filter-details .hint { margin-top: .8rem; }
 
+/* ---- Class (categorical) filter ---- */
+.filter-class {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .55rem;
+  margin: 0 0 1rem;
+}
+.filter-class .filter-label { margin-bottom: 0; }
+.filter-select {
+  padding: .42rem .55rem; border: 1px solid var(--border); border-radius: 6px;
+  background: #fff; font-size: .88rem; min-width: 16rem; cursor: pointer;
+}
+.filter-select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.hint.inline { margin: 0; font-size: .8rem; }
+
 /* ---- Numeric filters ---- */
 .filter-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -221,6 +234,12 @@ main { max-width: 1200px; margin: 1.6rem auto; padding: 0 1.5rem; }
 .card-title .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
 .card-uniprot { font-size: .8rem; font-weight: 600; vertical-align: middle; margin-left: .2rem; }
 .card-sub { margin: 0 0 1rem; color: var(--muted); }
+.card-class { margin: -.6rem 0 1rem; font-size: .9rem; }
+.card-class-label {
+  display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--accent); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 5px; padding: .05rem .4rem; margin-right: .45rem;
+}
 
 /* UniProt accession (card + table) */
 .uniprot { color: var(--accent); text-decoration: none; font-family: ui-monospace, Menlo, monospace; }

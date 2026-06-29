@@ -72,8 +72,8 @@
           <td><strong>5. This release</strong></td>
           <td>Of the cluster representatives, computed the
               <strong>ligand- and ion-free</strong> ones (protein-only):
-              <strong>8,570</strong> structures, standing for
-              <strong>19,014</strong> PDB entries. Where a representative also
+              <strong>8,571</strong> structures, standing for
+              <strong>19,017</strong> PDB entries. Where a representative also
               carried nucleic acid or other non-protein chains, only the protein
               was kept for the calculation.</td>
         </tr>
@@ -207,7 +207,7 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
 
       <h2>Dataset diversity in detail</h2>
       <p>
-        The 8,570 computed representatives are non-redundant by construction (one
+        The 8,571 computed representatives are non-redundant by construction (one
         per 90%-identity sequence cluster). Annotations pulled from the RCSB PDB API
         show the set spans a broad swath of the known protein universe.
       </p>
@@ -232,14 +232,49 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
         are counted in each.
       </p>
 
+      <h3>Functional classification beyond enzymes (GO molecular function)</h3>
+      <p>
+        EC numbers only describe enzymes, so they leave the ~84% non-enzyme
+        majority undifferentiated. To break that down we roll each structure's
+        <strong>Gene Ontology molecular-function</strong> annotations up to their
+        top-level GO categories. This labels non-enzymes too — receptors,
+        transporters, transcription factors, structural proteins — in one scheme
+        that also recovers more enzymes than carry an explicit EC number
+        (catalytic activity ≈ 30% vs 16% with an EC).
+      </p>
+      <table class="funnel">
+        <tr><td>Enzyme (catalytic activity)</td><td>2,587</td><td>30.2%</td></tr>
+        <tr><td>Binding only</td><td>1,136</td><td>13.3%</td></tr>
+        <tr><td>Regulator / inhibitor</td><td>980</td><td>11.4%</td></tr>
+        <tr><td>Structural molecule</td><td>553</td><td>6.5%</td></tr>
+        <tr><td>Transcription regulator</td><td>390</td><td>4.6%</td></tr>
+        <tr><td>Molecular adaptor</td><td>389</td><td>4.5%</td></tr>
+        <tr><td>Transporter</td><td>306</td><td>3.6%</td></tr>
+        <tr><td>Receptor (signaling)</td><td>226</td><td>2.6%</td></tr>
+        <tr><td>Toxin</td><td>214</td><td>2.5%</td></tr>
+        <tr><td>Other molecular function</td><td>50</td><td>0.6%</td></tr>
+        <tr><td>Antioxidant</td><td>49</td><td>0.6%</td></tr>
+        <tr><td>Electron transfer</td><td>27</td><td>0.3%</td></tr>
+        <tr><td>Translation regulator</td><td>26</td><td>0.3%</td></tr>
+        <tr><td>No molecular-function annotation</td><td>2,968</td><td>34.6%</td></tr>
+      </table>
+      <p class="hint">
+        A structure can carry more than one molecular function (e.g. an enzyme
+        that also binds nucleic acids), so the categories overlap and the
+        percentages do not sum to 100%. The generic "binding" category is shown
+        only for structures with no more specific function. These same categories
+        drive the <strong>Protein class</strong> filter on the
+        <a href="./index.html">database page</a>.
+      </p>
+
       <h3>Structural classification (CATH)</h3>
       <p>
-        The annotated structures cover <strong>1,408</strong> distinct CATH
+        The annotated structures cover <strong>1,409</strong> distinct CATH
         superfamilies across every major fold class:
       </p>
       <table class="funnel">
         <tr><td>Mainly Alpha</td><td>1,016</td><td>11.9%</td></tr>
-        <tr><td>Mainly Beta</td><td>1,302</td><td>15.2%</td></tr>
+        <tr><td>Mainly Beta</td><td>1,303</td><td>15.2%</td></tr>
         <tr><td>Alpha/Beta</td><td>1,726</td><td>20.1%</td></tr>
         <tr><td>Few secondary structures</td><td>44</td><td>0.5%</td></tr>
         <tr><td>Special</td><td>75</td><td>0.9%</td></tr>
@@ -250,7 +285,7 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
         Source organisms span all four superkingdoms of cellular and viral life:
       </p>
       <table class="funnel">
-        <tr><td>Eukaryota</td><td>4,496</td><td>52.5%</td></tr>
+        <tr><td>Eukaryota</td><td>4,497</td><td>52.5%</td></tr>
         <tr><td>Bacteria</td><td>2,830</td><td>33.0%</td></tr>
         <tr><td>Viruses</td><td>825</td><td>9.6%</td></tr>
         <tr><td>Archaea</td><td>197</td><td>2.3%</td></tr>
@@ -259,8 +294,9 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
 
       <div class="figure-grid">
         <figure>
-          <img src="./figures/fig_ec_class.png" alt="Functional diversity by EC class" loading="lazy" />
-          <figcaption>Functional diversity by EC class.</figcaption>
+          <img src="./figures/fig_go_function.png" alt="Functional diversity by GO molecular-function class" loading="lazy" />
+          <figcaption>Functional diversity by GO molecular function — non-enzymes
+            (receptors, transporters, transcription factors, …) resolved alongside enzymes.</figcaption>
         </figure>
         <figure>
           <img src="./figures/fig_taxonomy.png" alt="Taxonomic diversity by superkingdom" loading="lazy" />
@@ -270,7 +306,7 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
       <p class="hint">
         CATH and Pfam do not yet annotate many recent entries (notably cryo-EM
         structures), so dataset breadth is best read from the
-        <strong>counts of distinct families</strong> (2,639 Pfam, 1,408 CATH)
+        <strong>counts of distinct families</strong> (2,644 Pfam, 1,409 CATH)
         rather than from per-class percentages. Non-redundancy is guaranteed by the
         sequence clustering (one representative per cluster).
       </p>

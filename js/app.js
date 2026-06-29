@@ -102,17 +102,30 @@ function metric(label, value, unit) {
     + `<span class="value">${value}${unit ? ` <span class="unit">${unit}</span>` : ""}</span></div>`;
 }
 
+// Human-readable protein class for a structure: GO functional buckets, plus the
+// EC enzyme subclass(es) when present. Empty string if nothing is annotated.
+function classText(s) {
+  const fc = String(s.functional_class ?? "").split("|").filter(Boolean);
+  const ec = String(s.ec_class ?? "").split("|").filter(Boolean)
+    .map((d) => EC_LABELS[d] || `EC ${d}`);
+  const parts = fc.slice();
+  if (ec.length) parts.push(ec.join(", "));
+  return parts.join(" · ");
+}
+
 function renderCard(s, noteHtml) {
   const proteinLine = [s.protein_name, s.release_date ? `released ${s.release_date}` : null]
     .filter(Boolean).map(escapeHtml).join(" · ");
 
   const uni = uniprotHtml(s.uniprot);
+  const klass = classText(s);
 
   return (noteHtml || "")
     + `<h3 class="card-title"><span class="code">${escapeHtml(s.pdb_code)}</span>`
     +   (uni ? ` <span class="card-uniprot">${uni}</span>` : "")
     + `</h3>`
     + `<p class="card-sub">${proteinLine || "—"}</p>`
+    + (klass ? `<p class="card-class"><span class="card-class-label">Class</span> ${escapeHtml(klass)}</p>` : "")
     + `<div class="metrics">`
     +   metric("Polarization", fmtE(s.polarization_energy), "kT")
     +   metric("Ionic", fmtE(s.ionic_energy), "kT")
@@ -143,28 +156,104 @@ function miniDl(url, ext) {
 
 // ---------- numeric range filters ----------
 const NUMERIC_FILTERS = [
-  { key: "total_energy", label: "Total energy", unit: "kT" },
-  { key: "polarization_energy", label: "Polarization", unit: "kT" },
-  { key: "ionic_energy", label: "Ionic", unit: "kT" },
-  { key: "coulombic_energy", label: "Coulombic", unit: "kT" },
-  { key: "surface_potential_min", label: "Potential min", unit: "kT/e" },
-  { key: "surface_potential_max", label: "Potential max", unit: "kT/e" },
+  { key: "surface_potential_min", label: "Surface potential (min)", unit: "kT/e" },
+  { key: "surface_potential_max", label: "Surface potential (max)", unit: "kT/e" },
   { key: "n_residues", label: "Residues", unit: "" },
   { key: "cluster_size", label: "Cluster size", unit: "" },
 ];
 let FILTER_INPUTS = []; // [{key, min, max}]
 
+// ---------- categorical class filter (functional_class / ec_class) ----------
+// Each option encodes which row field it matches and the value to look for, e.g.
+// {field:"functional_class", value:"Receptor"} or {field:"ec_class", value:"3"}.
+// "__none__" matches rows whose functional_class is empty (no MF annotation).
+const FUNCTIONAL_BUCKETS = [
+  "Enzyme", "Receptor", "Transporter", "Transcription regulator",
+  "Regulator/inhibitor", "Toxin", "Structural", "Electron transfer",
+  "Antioxidant", "Translation regulator", "Molecular adaptor", "Binding",
+  "Other function",
+];
+const EC_LABELS = {
+  "1": "Oxidoreductases (EC 1)", "2": "Transferases (EC 2)",
+  "3": "Hydrolases (EC 3)", "4": "Lyases (EC 4)", "5": "Isomerases (EC 5)",
+  "6": "Ligases (EC 6)", "7": "Translocases (EC 7)",
+};
+let CLASS_FILTER = null; // {field, value} | null
+
+// Active-filter badge (numeric inputs + categorical class). Shared by both
+// filter builders so the count stays correct whichever control changes.
+function updateFilterCount() {
+  const countEl = document.getElementById("filter-count");
+  if (!countEl) return;
+  let n = FILTER_INPUTS.filter((f) => f.min.value !== "" || f.max.value !== "").length;
+  if (CLASS_FILTER) n += 1;
+  countEl.textContent = `${n} active`;
+  countEl.hidden = n === 0;
+}
+
+function rowHasClass(rowData, field, value) {
+  const raw = String(rowData[field] ?? "");
+  if (field === "functional_class" && value === "__none__") return raw === "";
+  if (raw === "") return false;
+  return raw.split("|").includes(value);
+}
+
+function buildClassFilter(table) {
+  const sel = document.getElementById("class-filter");
+  if (!sel) return;
+
+  // counts per option, computed from the loaded data
+  const fcCount = new Map(), ecCount = new Map();
+  let noneCount = 0;
+  for (const r of RESULTS) {
+    const fc = String(r.functional_class ?? "");
+    if (fc === "") noneCount++;
+    else fc.split("|").forEach((b) => fcCount.set(b, (fcCount.get(b) || 0) + 1));
+    const ec = String(r.ec_class ?? "");
+    if (ec) ec.split("|").forEach((d) => ecCount.set(d, (ecCount.get(d) || 0) + 1));
+  }
+
+  const mkOpt = (field, value, label, n) => {
+    const o = document.createElement("option");
+    o.value = `${field}:${value}`;
+    o.textContent = n != null ? `${label} (${n.toLocaleString("en-US")})` : label;
+    return o;
+  };
+
+  const gFunc = document.createElement("optgroup");
+  gFunc.label = "By molecular function";
+  for (const b of FUNCTIONAL_BUCKETS) {
+    if (fcCount.get(b)) gFunc.append(mkOpt("functional_class", b, b, fcCount.get(b)));
+  }
+  sel.append(gFunc);
+
+  const gEc = document.createElement("optgroup");
+  gEc.label = "By enzyme class (EC)";
+  for (const d of ["1", "2", "3", "4", "5", "6", "7"]) {
+    if (ecCount.get(d)) gEc.append(mkOpt("ec_class", d, EC_LABELS[d], ecCount.get(d)));
+  }
+  sel.append(gEc);
+
+  const gOther = document.createElement("optgroup");
+  gOther.label = "Other";
+  gOther.append(mkOpt("functional_class", "__none__", "No functional annotation", noneCount));
+  sel.append(gOther);
+
+  sel.addEventListener("change", () => {
+    const v = sel.value;
+    if (!v) { CLASS_FILTER = null; }
+    else {
+      const i = v.indexOf(":");
+      CLASS_FILTER = { field: v.slice(0, i), value: v.slice(i + 1) };
+    }
+    table.draw();
+    updateFilterCount();
+  });
+}
+
 function buildFilters(table) {
   const container = document.getElementById("numeric-filters");
-  const countEl = document.getElementById("filter-count");
-
-  // Show how many filters are active (useful when the panel is collapsed).
-  function updateCount() {
-    const n = FILTER_INPUTS.filter((f) => f.min.value !== "" || f.max.value !== "").length;
-    if (!countEl) return;
-    countEl.textContent = `${n} active`;
-    countEl.hidden = n === 0;
-  }
+  const updateCount = updateFilterCount;
 
   FILTER_INPUTS = NUMERIC_FILTERS.map((f) => {
     const wrap = document.createElement("div");
@@ -190,6 +279,9 @@ function buildFilters(table) {
 
   // custom range search: reads numeric values from the row's data object
   DataTable.ext.search.push((settings, searchData, dataIndex, rowData) => {
+    if (CLASS_FILTER && !rowHasClass(rowData, CLASS_FILTER.field, CLASS_FILTER.value)) {
+      return false;
+    }
     for (const f of FILTER_INPUTS) {
       const v = Number(rowData[f.key]);
       const mn = f.min.value === "" ? NaN : parseFloat(f.min.value);
@@ -202,6 +294,9 @@ function buildFilters(table) {
 
   document.getElementById("filter-reset").addEventListener("click", () => {
     FILTER_INPUTS.forEach((f) => { f.min.value = ""; f.max.value = ""; });
+    const sel = document.getElementById("class-filter");
+    if (sel) sel.value = "";
+    CLASS_FILTER = null;
     table.draw();
     updateCount();
   });
@@ -285,6 +380,7 @@ async function main() {
     document.getElementById("generated").textContent = results.generated || "—";
 
     const table = initTable();
+    buildClassFilter(table);
     buildFilters(table);
   } catch (err) {
     const out = document.getElementById("resolve-result");

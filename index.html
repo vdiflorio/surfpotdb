@@ -45,11 +45,19 @@
     <section class="panel" id="filter-panel">
       <details class="filter-details">
         <summary class="filter-summary">
-          <span class="filter-summary-title">Filter by value</span>
+          <span class="filter-summary-title">Filters</span>
           <span id="filter-count" class="filter-count" hidden></span>
         </summary>
-        <p class="hint">Set a min and/or max for any quantity. Filters combine with
-          each other and with the table search below.</p>
+        <p class="hint">Filters combine with each other and with the table search
+          below. Surface-potential filters refer to the min/max of the electrostatic
+          potential <em>on the molecular surface</em> (kT/e).</p>
+        <div class="filter-class">
+          <label class="filter-label" for="class-filter">Protein class</label>
+          <select id="class-filter" class="filter-select">
+            <option value="">All classes</option>
+          </select>
+          <span class="hint inline">By GO molecular function; enzymes also split by EC class.</span>
+        </div>
         <div id="numeric-filters" class="filter-grid"></div>
         <button type="button" id="filter-reset" class="btn-reset">Reset filters</button>
       </details>
