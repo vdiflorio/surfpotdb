@@ -36,7 +36,7 @@
         For each computed structure we report four electrostatic energy
         contributions (in <code>kT</code>), the range of the molecular-surface
         potential (in <code>kT/e</code>), and two downloadable files: the surface
-        potential mesh (<code>.vtp</code>, for ParaView) and the protonated
+        potential mesh (<code>.vtp</code>, for ParaView/PyVista) and the protonated
         structure with charges and radii (<code>.pqr</code>, for PyMOL/VMD).
       </p>
 
@@ -179,6 +179,7 @@ python ngpb_potential.py 7kr0.vtp 7kr0.pqr</code></pre>
       <ul>
         <li><strong><code>.vtp</code>, surface potential mesh.</strong> Open in
             <a href="https://www.paraview.org/" target="_blank" rel="noopener">ParaView</a>
+            (or <a href="https://pyvista.org/" target="_blank" rel="noopener">PyVista</a>)
             and colour by the <code>phi</code> array to see the electrostatic
             potential on the molecular surface. It also carries the surface normal
             and the polarization charge <code>q_pol</code> at each node.</li>

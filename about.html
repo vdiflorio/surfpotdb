@@ -38,19 +38,22 @@
         clusters, filtering, and bulk download. -->
       </p>
 
-      <h2>Why it matters</h2>
+      <h2>What makes SurfPotDB different?</h2>
       <p>
-        Continuum (Poisson–Boltzmann) surface potentials are routinely recomputed
-        from scratch by individual groups, with non-trivial and rarely documented
-        choices of protonation, dielectric and ionic conditions, which makes
-        results hard to reproduce and compare.
-        <span class="brand">SurfPot<span class="db">DB</span></span> removes that
-        friction: every potential comes from one documented protocol, with the
-        per-atom protonation made explicit and the full internal field
-        reconstructable from the published files alone. In doing so it adds a layer
-        of <strong>electrostatic quantities that complement the structural
-        information</strong> in the Protein Data Bank, computed once, consistently,
-        and ready to reuse.
+        <span class="brand">SurfPot<span class="db">DB</span></span> is designed to
+        make protein electrostatics reproducible and reusable at database scale.
+        Instead of requiring users to recompute surface potentials with their own
+        protonation choices, dielectric constants, ionic conditions and meshing
+        parameters, <span class="brand">SurfPot<span class="db">DB</span></span>
+        provides a consistently generated reference set.
+      </p>
+      <p>
+        Each entry is computed from an explicitly protonated structure, using the
+        same documented physical parameters across the database. The downloadable
+        files include both the PQR structure and the enriched VTP surface mesh,
+        allowing users not only to inspect the surface potential but also to reuse
+        the data for downstream calculations without rerunning the
+        Poisson–Boltzmann solver.
       </p>
       <p>What <span class="brand">SurfPot<span class="db">DB</span></span> gives you:</p>
       <ul>
@@ -73,6 +76,25 @@
             SQLite snapshot for offline, dataset-wide analysis.</li>
       </ul>
 
+      <h2>Quick start</h2>
+      <ol>
+        <li>Enter a PDB code in the search box.</li>
+        <li>If the structure is a computed representative,
+            <span class="brand">SurfPot<span class="db">DB</span></span> shows its
+            electrostatic quantities and download links.</li>
+        <li>If the structure belongs to a covered 90%-identity cluster,
+            <span class="brand">SurfPot<span class="db">DB</span></span> redirects you
+            to the computed representative for that cluster.</li>
+        <li>Download the VTP file to visualize the surface electrostatic potential in
+            ParaView/PyVista, or for analysis in Python.</li>
+        <li>Download the PQR file to inspect the protonation state, per-atom charges
+            and radii, or to reuse it in other electrostatics workflows.</li>
+        <li><em>Optional:</em> use the provided
+            <a href="./tools/ngpb_potential.py">tool</a>
+            to reconstruct the electrostatic potential and field on individual atoms
+            and at any point inside the structure, directly from the published files.</li>
+      </ol>
+
       <h2>What it covers</h2>
       <p>
         <span class="brand">SurfPot<span class="db">DB</span></span> covers the
@@ -89,6 +111,14 @@
         <div class="stat"><div class="n">8,571</div><div class="l">representatives computed</div></div>
         <div class="stat"><div class="n">~19,000</div><div class="l">PDB codes resolvable</div></div>
       </div>
+
+      <h2>Current scope</h2>
+      <p>
+        The present release focuses on ligand- and ion-free protein representatives,
+        allowing all entries to be computed with a single, well-defined charge and
+        radius protocol. Protein–ligand and protein–ion complexes are planned for
+        future releases, once robust ligand and ion parametrization is incorporated.
+      </p>
 
       <h2>How broad it is</h2>
       <p>
@@ -113,7 +143,7 @@
             account; member codes of a covered cluster resolve automatically to the
             computed representative.</li>
         <li><strong>Two files per structure.</strong> The surface potential mesh
-            (<code>.vtp</code>, for ParaView) and the protonated structure
+            (<code>.vtp</code>, for ParaView/PyVista) and the protonated structure
             (<code>.pqr</code>, for PyMOL/VMD), plus a dataset-wide CSV index and
             SQLite snapshot.</li>
         <li><strong>Citable.</strong> Persistent Zenodo DOIs.</li>
