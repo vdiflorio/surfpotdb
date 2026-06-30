@@ -24,7 +24,10 @@ function fmt(value, maxFrac) {
   if (value === null || value === undefined || value === "") return "—";
   const n = Number(value);
   if (!isFinite(n)) return "—";
-  return n.toLocaleString("en-US", { maximumFractionDigits: maxFrac });
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: maxFrac,
+    maximumFractionDigits: maxFrac,
+  });
 }
 const fmtE = (v) => fmt(v, 1);   // energies [kT]
 const fmtPhi = (v) => fmt(v, 2); // potentials [kT/e]
